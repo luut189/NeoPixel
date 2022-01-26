@@ -33,7 +33,7 @@ unsigned char sRed = 0;
 unsigned char sGreen = 0;
 unsigned char sBlue = 0;
 
-unsigned char arrayLength = 3;
+unsigned char arrayLength = 4;
 unsigned char indexFunction = 0;
 
 int tick = 1;
@@ -43,8 +43,9 @@ bool isPressed = false;
 void epicRGB();
 void breathingRGB();
 void rgbChooser();
+void pulsingRGB();
 
-void (*functions[]) (void) = { epicRGB, breathingRGB, rgbChooser };
+void (*functions[]) (void) = { epicRGB, breathingRGB, rgbChooser, pulsingRGB };
 
 // i still can't understand this
 void hsvToRGB(unsigned char *r, unsigned char *g, unsigned char *b, unsigned char h1, unsigned char s1, unsigned char v1) {
@@ -155,6 +156,24 @@ void rgbChooser() {
     }
 }
 
+unsigned char ledNum = LEDs;
+bool rev = false;
+void pulsingRGB() {
+    epicRGB();
+    if(rev) {
+        ledNum++;
+        if(ledNum == LEDs) rev = false;
+    } else {
+        ledNum--;
+        if(ledNum == 0) {
+            rev = true;
+        }
+        neopic_fill(LEDs-ledNum, 0, 0, 0);
+    }
+    neopic_fill_a(ledNum, red, green, blue);
+    __delay_ms(15);
+}
+
 int main(void)
 {
     OSC_config();               // Configure internal oscillator for 48 MHz
@@ -176,10 +195,12 @@ int main(void)
         } else if(SW1 != 0) {
             isPressed = false;
         }
-        
-        if(indexFunction != 2) neopic_fill_a(LEDs, red, green, blue);
-        else neopic_fill(LEDs, sRed, sGreen, sBlue);
         (*functions[indexFunction])();
+        if(indexFunction == 2) {
+            neopic_fill(LEDs, sRed, sGreen, sBlue);
+        } else if(indexFunction < 2) {
+            neopic_fill_a(LEDs, red, green, blue);
+        }
         
         __delay_ms(15);
         
