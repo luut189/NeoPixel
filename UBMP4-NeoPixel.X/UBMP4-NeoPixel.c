@@ -29,6 +29,10 @@ unsigned char red[LEDs];
 unsigned char green[LEDs];
 unsigned char blue[LEDs];
 
+unsigned char redS[LEDs];
+unsigned char greenS[LEDs];
+unsigned char blueS[LEDs];
+
 unsigned char sRed = 0;
 unsigned char sGreen = 0;
 unsigned char sBlue = 0;
@@ -159,7 +163,17 @@ void rgbChooser() {
 unsigned char ledNum = LEDs;
 bool rev = false;
 void pulsingRGB() {
-    epicRGB();
+    for(unsigned char i = 0; i < LEDs; i++) {
+        hsvToRGB(&redS[i], &greenS[i], &blueS[i], (unsigned char) (tick) + (i * 2), 255, 255);
+        if(i > ledNum) {
+            redS[i] = 0;
+            blueS[i] = 0;
+            greenS[i] = 0;
+        }
+    }
+    if(ticks_left != 0) ticks_left--;
+    tick++;
+    
     if(rev) {
         ledNum++;
         if(ledNum == LEDs) rev = false;
@@ -168,9 +182,9 @@ void pulsingRGB() {
         if(ledNum == 0) {
             rev = true;
         }
-        neopic_fill(LEDs-ledNum, 0, 0, 0);
+        neopic_fill_a(LEDs, redS, greenS, blueS);
     }
-    neopic_fill_a(ledNum, red, green, blue);
+    neopic_fill_a(LEDs, redS, greenS, blueS);
     __delay_ms(15);
 }
 
@@ -195,7 +209,9 @@ int main(void)
         } else if(SW1 != 0) {
             isPressed = false;
         }
+        
         (*functions[indexFunction])();
+        
         if(indexFunction == 2) {
             neopic_fill(LEDs, sRed, sGreen, sBlue);
         } else if(indexFunction < 2) {
