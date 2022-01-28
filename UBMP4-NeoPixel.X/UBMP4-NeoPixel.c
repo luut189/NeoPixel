@@ -1,14 +1,6 @@
 /*==============================================================================
- Project: Intro-1-Input-Output
+ Project: NeoPixel
  Date:    May 16, 2021
- 
- This example UBMP4 input and output program demonstrates pushbutton input, LED
- (bit) output, port latch (byte) output, time delay functions, and simple 'if'
- condition structures.
- 
- Additional program analysis and programming activities demonstrate byte output,
- logical condition operators AND and OR, using delay functions to create sound,
- and simulated start-stop button functionality.
 ==============================================================================*/
 
 #include    "xc.h"              // Microchip XC8 compiler include file
@@ -36,6 +28,8 @@ unsigned char blueS[LEDs];
 unsigned char sRed = 0;
 unsigned char sGreen = 0;
 unsigned char sBlue = 0;
+
+unsigned char light;
 
 unsigned char arrayLength = 4;
 unsigned char indexFunction = 0;
@@ -182,7 +176,6 @@ void pulsingRGB() {
         if(ledNum == 0) {
             rev = true;
         }
-        neopic_fill_a(LEDs, redS, greenS, blueS);
     }
     neopic_fill_a(LEDs, redS, greenS, blueS);
     __delay_ms(15);
@@ -192,9 +185,12 @@ int main(void)
 {
     OSC_config();               // Configure internal oscillator for 48 MHz
     UBMP4_config();             // Configure on-board UBMP4 I/O devices
+    ADC_config();
+    ADC_select_channel(ANQ1);
 	
     while(1)
 	{   
+        light = ADC_read();
         if(SW1 == 0 && !isPressed) {
             isPressed = true;
             indexFunction++;
@@ -214,11 +210,23 @@ int main(void)
         
         if(indexFunction == 2) {
             neopic_fill(LEDs, sRed, sGreen, sBlue);
+            LED4 = 0;
+            LED5 = 1;
+        } else if(indexFunction == 3) {
+            LED5 = 0;
+            LED6 = 1;
         } else if(indexFunction < 2) {
             neopic_fill_a(LEDs, red, green, blue);
+            if(indexFunction == 0) {
+                LED6 = 0;
+                LED3 = 1;
+            } else if(indexFunction == 1) {
+                LED3 = 0;
+                LED4 = 1;
+            }
         }
         
-        __delay_ms(15);
+        __delay_ms(12);
         
         
         // Activate bootloader if SW1 is pressed.
