@@ -31,7 +31,7 @@ unsigned char sBlue = 0;
 
 unsigned char light;
 
-unsigned char arrayLength = 4;
+unsigned char arrayLength = 5;
 unsigned char indexFunction = 0;
 
 int tick = 1;
@@ -42,8 +42,9 @@ void epicRGB();
 void breathingRGB();
 void rgbChooser();
 void pulsingRGB();
+void shootingColor();
 
-void (*functions[]) (void) = { epicRGB, breathingRGB, rgbChooser, pulsingRGB };
+void (*functions[]) (void) = { epicRGB, breathingRGB, rgbChooser, pulsingRGB, shootingColor };
 
 // i still can't understand this
 void hsvToRGB(unsigned char *r, unsigned char *g, unsigned char *b, unsigned char h1, unsigned char s1, unsigned char v1) {
@@ -181,6 +182,58 @@ void pulsingRGB() {
     __delay_ms(15);
 }
 
+bool running = false;
+bool reverse = false;
+unsigned char period = 0;
+unsigned char num = LEDs;
+void shootingColor() {
+    if(!running && SW2 == 0) {
+        running = true;
+        period = 0;
+        num = LEDs;
+    }
+    
+    if(!running) {
+        for(unsigned char i = 0; i < LEDs; i++) {
+            redS[i] = 0;
+            greenS[i] = 0;
+            blueS[i] = 0;
+        }
+    }
+    
+    if(running) {
+        if(period == 100) {
+            running = false;
+        } else {
+            period+=5;
+        }
+        
+        if(reverse) {
+            num++;
+            if(num == LEDs) reverse = false;
+        } else {
+            num--;
+            if(num == 0) reverse = true;
+        }
+        for(unsigned char i = 0; i < LEDs; i++) {
+            redS[i] = 123;
+            greenS[i] = 92;
+            blueS[i] = 12;
+            if(i != num) {
+                redS[i] = 0;
+                greenS[i] = 0;
+                blueS[i] = 0;
+            }
+        }
+        for(unsigned char i = 50; i != 0; i--) {
+            BEEPER = !BEEPER;
+            for(unsigned int p = period; p != 0; p--);
+        }
+    }
+    neopic_fill_a(LEDs, redS, greenS, blueS);
+    __delay_ms(15);
+}
+
 int main(void)
 {
     OSC_config();               // Configure internal oscillator for 48 MHz
@@ -215,6 +268,8 @@ int main(void)
         } else if(indexFunction == 3) {
             LED5 = 0;
             LED6 = 1;
+        } else if(indexFunction == 4) {
+            LED3 = 1;
         } else if(indexFunction < 2) {
             neopic_fill_a(LEDs, red, green, blue);
             if(indexFunction == 0) {
